@@ -6,8 +6,8 @@
 
 $train = "train.csv"; # default train file
 $test = "test.csv"; # default test file
-if ($# ARGV > 0) { $train = $ARGV[0]; } # override if argument
-if ($# ARGV > 0){  $test  = $ARGV[1]; } # override if argument
+if ($#ARGV > 0) { $train = $ARGV[0]; } # override if argument
+if ($#ARGV > 0){  $test  = $ARGV[1]; } # override if argument
 
 my $n_msgs = 0;  # count of all messages
 my $n_spam = 0;  # count of spam messages
@@ -24,14 +24,14 @@ while (my $line = <$in>) {
   my $msg = $fields[1];                 # this is the text message (string)
 
   # update the ham , spam , and total message counts
-  if ($label == "ham") $n_ham++; 
-  else if ($label == "spam") $n_spam++; 
+  if ($label eq "ham") { $n_ham++; }
+  elsif ($label eq "spam") { $n_spam++; }
   $n_msgs++; 
 
   # loop over each (lower-case) word
   foreach $word (split /\s+/, lc($msg)) {
     # update count for that word / label pair
-    %counts{$word}{$label}++; 
+    $counts{$label}{$word}++; 
   }
 }
 
@@ -61,6 +61,9 @@ my $prior_ham = log ( $n_ham / $n_msgs );
 # For each message, predict spam or ham 
 # Calculate overall accuracy
 
+# reset message count 
+$n_msgs = 0; 
+
 # open the file $train and iterate it with file handler $in
 open my $test_in, $test or die "$test: $!"; 
 while (my $line = <$test_in>) {
@@ -69,20 +72,23 @@ while (my $line = <$test_in>) {
   my $label = $fields[0];               # this is the label: spam or ham (string)
   my $msg = $fields[1];                 # this is the text message (string)
 
-  my $p_ham = log($prior_ham);
-  my $p_spam = log($prior_spam);
+  my $p_ham = $prior_ham;
+  my $p_spam = $prior_spam;
+
+  $n_msgs++; 
 
   # loop over each (lower-case) word
   foreach $word (split /\s+/, lc($msg)) {
-    $p_ham += log( %counts{$word}{"ham"} / $n_words_ham )
-    $p_spam += log( %counts{$word}{"spam"} / $n_words_spam )
+    $min = log ( 1 / ($n_total_words) ); 
+    $p_ham = $counts{"ham"}{$word} > 0 ? log( $counts{"ham"}{$word} / $n_words_ham ) : $min;
+    $p_spam = $counts{"spam"}{$word} > 0 ? log( $counts{"spam"}{$word} / $n_words_ham ) : $min;
   }
 
   $prediction = $p_ham > $p_spam ? "ham" : "spam"; 
 
-  printf("$label, $prediction, %.5f, %.5f", $p_ham, $p_spam);
+  printf("$label, $prediction, %.5f, %.5f\n", $p_ham, $p_spam);
 
-  if ($prediction == $label) $correct++; 
+  if ($prediction eq $label) { $correct++; }
 
 }
 
