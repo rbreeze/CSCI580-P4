@@ -59,7 +59,6 @@ my $prior_ham = log ( $n_ham / $n_msgs );
 
 # Loop through the test file
 # For each message, predict spam or ham 
-# Calculate overall accuracy
 
 # reset message count 
 $n_msgs = 0; 
@@ -80,8 +79,8 @@ while (my $line = <$test_in>) {
   # loop over each (lower-case) word
   foreach $word (split /\s+/, lc($msg)) {
     $min = log ( 1 / ($n_total_words) ); 
-    $p_ham = $counts{"ham"}{$word} > 0 ? log( $counts{"ham"}{$word} / $n_words_ham ) : $min;
-    $p_spam = $counts{"spam"}{$word} > 0 ? log( $counts{"spam"}{$word} / $n_words_ham ) : $min;
+    $p_ham += $counts{"ham"}{$word} > 0 ? log( $counts{"ham"}{$word} / $n_words_ham ) : $min;
+    $p_spam += $counts{"spam"}{$word} > 0 ? log( $counts{"spam"}{$word} / $n_words_spam ) : $min;
   }
 
   $prediction = $p_ham > $p_spam ? "ham" : "spam"; 
@@ -92,5 +91,6 @@ while (my $line = <$test_in>) {
 
 }
 
+# Calculate overall accuracy
 printf("Accuracy = %.2f\n", ($correct/$n_msgs));
 
