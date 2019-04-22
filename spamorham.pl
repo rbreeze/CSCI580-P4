@@ -51,7 +51,7 @@ my $n_words_ham = sum values %{$counts{"ham"}};
 my $n_words_spam = sum values %{$counts{"spam"}}; 
 
 # find total counts of spam words plus ham words
-my $n_total_words = $n_words_ham + $n_words_ham;
+my $n_total_words = $n_words_spam + $n_words_ham;
 
 # a priori ham / spam probabilities
 my $prior_spam = log ( $n_spam / $n_msgs );
